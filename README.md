@@ -3,6 +3,7 @@
 [![arXiv](https://img.shields.io/badge/arXiv-2303.XXXXX-b31b1b.svg)](https://arxiv.org/abs/2303.XXXXX)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Hugging Face Model](https://img.shields.io/badge/🤗%20Hugging%20Face-Model-blue)](https://huggingface.co/Kevin3777/zero-init-residual-complex-absa)
 
 Official PyTorch implementation of the paper:  
 **"BEYOND COSINE SIMILARITY: ZERO-INITIALIZED RESIDUAL COMPLEX PROJECTION FOR ASPECT-BASED SENTIMENT ANALYSIS"**  
@@ -47,6 +48,7 @@ We propose a novel framework that:
 
 Our method achieves a **Macro-F1 of 0.8851** on the ASAP dataset, significantly outperforming strong baselines.
 
+The pre-trained model is available on Hugging Face: [Kevin3777/zero-init-residual-complex-absa](https://huggingface.co/Kevin3777/zero-init-residual-complex-absa)
 ---
 
 ## 🏆 Key Contributions
@@ -178,15 +180,9 @@ Clone the repository and install dependencies:
 
 ```bash
 git clone https://github.com/yourusername/ZRCP-ABSA.git
-cd ZRCP-ABSA
+cd AG-ABSA
 pip install -r requirements.txt
 ```
-
-Requirements:
-- Python 3.8+
-- PyTorch 1.10+
-- Transformers 4.20+
-- NumPy, scikit-learn, tqdm
 
 ### Data Preparation
 
@@ -202,26 +198,56 @@ data/
 
 Each JSON line should contain `text`, `aspect`, `polarity`, and optionally `window_text` (if using our context-aware extraction).
 
+### Direct Usage
+
+The pre-trained model is available on Hugging Face: [Kevin3777/zero-init-residual-complex-absa](https://huggingface.co/Kevin3777/zero-init-residual-complex-absa) To use the pre-trained model with codes:
+
+```bash
+from transformers import AutoModel
+model = AutoModel.from_pretrained("yourusername/zrcp-absa")
+```
+
 ### Training
 
 To train the model with default settings:
 
 ```bash
-python train.py \
-  --model_name_or_path hfl/chinese-roberta-wwm-ext \
-  --train_file data/train.json \
-  --validation_file data/dev.json \
-  --output_dir ./outputs \
-  --num_train_epochs 5 \
-  --per_device_train_batch_size 32 \
-  --gradient_accumulation_steps 4 \
-  --learning_rate 2e-5 \
-  --w_ibn 1.0 \
-  --w_angle 1.0 \
-  --w_cos 0.1 \
-  --tau_ibn 20 \
-  --tau_angle 20 \
-  --do_train
+python train_learnable\v3_all1\train_encoder.py
+```
+
+The training config is shown as an example:
+
+```bash
+{
+  "data": {
+    "input_jsonl_file": "D:/WorkSpace/AnglE_yj/data_preparation/Aspect-Polarity_Pair/output/v2/asap_angle_contextual_ap_data_hybrid.jsonl",
+    "output_dir": "checkpoints_learnable/v3_all1"
+  },
+  "model": {
+    "name": "hfl/chinese-roberta-wwm-ext",
+    "max_length": 192,
+    "pooling_strategy": "cls"
+  },
+  "training": {
+    "batch_size": 32,
+    "gradient_accumulation_steps": 4,
+    "num_epochs": 5,
+    "learning_rate": 2e-5,
+    "warmup_steps": 500,
+    "save_steps": 1000,
+    "logging_steps": 100,
+    "fp16": true
+  },
+  "loss": {
+    "cosine_w": 1.0,       
+    "ibn_w": 1.0,
+    "angle_w": 1.0,
+    "cosine_tau": 20,
+    "ibn_tau": 20,
+    "angle_tau": 1          
+  }
+}
+
 ```
 
 ### Evaluation
@@ -229,10 +255,7 @@ python train.py \
 Evaluate a trained model on the test set:
 
 ```bash
-python evaluate.py \
-  --model_path ./outputs/best_model \
-  --test_file data/test.json \
-  --output_file ./results/predictions.json
+python eval_new\learnable\v3_all1\eval_learnable.py
 ```
 
 ---
