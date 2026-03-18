@@ -98,7 +98,7 @@ $$
 \mathcal{L}_{\text{total}} = w_{\text{ibn}}\mathcal{L}_{\text{ibn}} + w_{\text{angle}}\mathcal{L}_{\text{angle}} + w_{\text{cos}}\mathcal{L}_{\text{cos}}
 $$
 
-In our optimal configuration: \(w_{\text{ibn}}=1.0\), \(w_{\text{angle}}=1.0\), \(w_{\text{cos}}=0.1\), \(\tau_{\text{ibn}}=\tau_{\text{angle}}=20\).
+In our optimal configuration: $w_{\text{ibn}}=1.0$, $w_{\text{angle}}=1.0$, $w_{\text{cos}}=0.1$, $\tau_{\text{ibn}}=\tau_{\text{angle}}=20$.
 
 ---
 
