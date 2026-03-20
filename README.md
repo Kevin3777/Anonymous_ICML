@@ -205,7 +205,7 @@ We investigate the effect of adding an explicit amplitude penalty (MSE loss) to 
 Clone the repository and install dependencies:
 
 ```bash
-git clone https://github.com/yourusername/ZRCP-ABSA.git
+git clone https://github.com/Kevin3777/AG-ABSA.git
 cd AG-ABSA
 pip install -r requirements.txt
 ```
