@@ -9,7 +9,9 @@ Official PyTorch implementation of the paper:
 **"BEYOND COSINE SIMILARITY: ZERO-INITIALIZED RESIDUAL COMPLEX PROJECTION FOR ASPECT-BASED SENTIMENT ANALYSIS"**  
 *March 17, 2026*
 
-This repository contains the code, data, and pre-trained models for our novel framework that disentangles aspect semantics and sentiment polarities using complex-valued representations. Our method achieves state-of-the-art performance on fine-grained ABSA tasks by overcoming false-negative collisions and leveraging phase-driven angle optimization.
+This repository contains the code, data, and pre-trained models for our novel framework that disentangles aspect semantics and sentiment polarities using complex-valued representations. Our method achieves state-of-the-art performance on fine-grained ABSA tasks by overcoming false-negative collisions and leveraging phase-driven angle optimization. 
+
+If you need the whole paper, please contact the author. Since there are still a few experiences carrying on, it is a simple example to browse our main method by the [training example script](https://github.com/Kevin3777/AG-ABSA/blob/master/train_example_chinese) from our GitHub repository.
 
 ---
 
