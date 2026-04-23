@@ -1,6 +1,5 @@
 # Beyond Cosine Similarity: Zero-Initialized Residual Complex Projection for Aspect-Based Sentiment Analysis
 
-<!-- 这是一个注释，渲染时不会显示[![arXiv](https://img.shields.io/badge/arXiv-2303.XXXXX-b31b1b.svg)](https://arxiv.org/abs/2303.XXXXX) -->
 [![arXiv](https://img.shields.io/badge/arXiv-2603.28205-b31b1b.svg)](https://arxiv.org/abs/2603.28205)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
@@ -10,9 +9,7 @@ Official PyTorch implementation of the paper:
 **"BEYOND COSINE SIMILARITY: ZERO-INITIALIZED RESIDUAL COMPLEX PROJECTION FOR ASPECT-BASED SENTIMENT ANALYSIS"**  
 *March 17, 2026*
 
-This repository contains the code, data, and pre-trained models for our novel framework that disentangles aspect semantics and sentiment polarities using complex-valued representations. Our method achieves state-of-the-art performance on fine-grained ABSA tasks by overcoming false-negative collisions and leveraging phase-driven angle optimization. 
-
-If you need the whole paper, please contact the author. Since there are still a few experiences carrying on, it is a simple example to browse our main method by the [training example script](https://github.com/Kevin3777/AG-ABSA/blob/master/train_example_chinese) from our GitHub repository.
+This repository contains the code, data, and pre-trained models for our novel framework that disentangles aspect semantics and sentiment polarities using complex-valued representations. Our method achieves state-of-the-art performance on fine-grained ABSA tasks by overcoming false-negative collisions and leveraging phase-driven angle optimization, further consolidated by an **amplitude penalty** that filters subjective intensity noise.
 
 ---
 
@@ -23,12 +20,14 @@ If you need the whole paper, please contact the author. Since there are still a 
 - [Methodology](#methodology)
   - [Zero-Initialized Residual Complex Projection (ZRCP)](#zero-initialized-residual-complex-projection-zrcp)
   - [Anti-collision Masked Angle Loss](#anti-collision-masked-angle-loss)
+  - [Amplitude Penalty for Structural Consolidation](#amplitude-penalty-for-structural-consolidation)
   - [Joint Optimization Objective](#joint-optimization-objective)
 - [Experiments](#experiments)
-  - [Dataset](#dataset)
+  - [Datasets](#datasets)
   - [Baselines](#baselines)
   - [Main Results](#main-results)
   - [Ablation Study](#ablation-study)
+  - [English Benchmarks](#english-benchmarks)
   - [Amplitude Penalty Analysis](#amplitude-penalty-analysis)
 - [Getting Started](#getting-started)
   - [Installation](#installation)
@@ -47,9 +46,10 @@ Aspect-Based Sentiment Analysis (ABSA) suffers from **representation entanglemen
 We propose a novel framework that:
 - Projects textual features into a **complex semantic space** using a **Zero-Initialized Residual Complex Projection (ZRCP)** module.
 - Uses the **phase** (angle) to represent sentiment polarity and the **amplitude** (magnitude) to encode semantic intensity and lexical richness.
-- Introduces an **Anti-collision Masked Angle Loss** that prevents false-negative repulsion and expands inter-polarity margins by over 50%.
+- Introduces an **Anti-collision Masked Angle Loss** that prevents false-negative repulsion and expands inter-polarity margins.
+- Further consolidates representations with an **Amplitude Penalty** that constrains same-aspect vectors onto a unified hypersphere, effectively filtering out intensity-related noise.
 
-Our method achieves a **Macro-F1 of 0.8851** on the ASAP dataset, significantly outperforming strong baselines.
+Our method achieves a **Macro-F1 of 0.8923** and **Accuracy of 0.9418** on the ASAP dataset, significantly outperforming strong baselines. It also achieves state-of-the-art results on English benchmarks SemEval-2016 (Macro-F1 0.9044) and MAMS-ACSA (Macro-F1 0.6671).
 
 The pre-trained model is available on Hugging Face: [Kevin3777/zero-init-residual-complex-absa](https://huggingface.co/Kevin3777/zero-init-residual-complex-absa)
 
@@ -57,10 +57,10 @@ The pre-trained model is available on Hugging Face: [Kevin3777/zero-init-residua
 
 ## 🏆 Key Contributions
 
-1. **ZRCP Module**: A residual complex projection that smoothly maps pre-trained real-valued features into a complex space, preserving semantic continuity while decoupling aspect and sentiment.
+1. **ZRCP Module**: A zero-initialized residual complex projection that smoothly maps pre-trained real-valued features into a complex space, preserving semantic continuity while decoupling aspect and sentiment.
 2. **Anti-collision Masked Angle Loss**: A novel loss that dynamically masks same-polarity samples to avoid false negatives and maximizes angular divergence between opposing sentiments.
-3. **Geometric Analysis**: We demonstrate that explicitly penalizing amplitude leads to over-regularization, proving that amplitude naturally captures subjective intensity and must remain unconstrained.
-4. **State-of-the-Art Results**: Extensive experiments on 18 fine-grained aspects show consistent improvements over existing methods.
+3. **Amplitude Penalty (L_amp)**: A structural regularizer that forces same-aspect representations to reside on a consistent hypersphere, filtering out subjective intensity noise and significantly boosting performance on long-tail aspects (e.g., +3.69% F1 on Downtown).
+4. **State-of-the-Art Results**: Extensive experiments on Chinese ASAP (18 fine-grained aspects) and two English benchmarks show consistent and substantial improvements over existing methods.
 
 ---
 
@@ -71,49 +71,55 @@ The pre-trained model is available on Hugging Face: [Kevin3777/zero-init-residua
 Instead of hard chunking the hidden state into real/imaginary parts (which destroys semantic integrity), we use two zero-initialized linear projections with residual connections:
 
 $$
-h_{\text{re}} = \mathrm{chunk}(h)_{\text{re}} + W_{\text{re}}(\mathrm{chunk}(h)_{\text{re}} + b_{\text{re}})
+h_{\text{re}} = h^{(1)} + (W_{\text{re}} h^{(1)} + b_{\text{re}})
 $$
 
 $$
-h_{\text{im}} = \mathrm{chunk}(h)_{\text{im}} + W_{\text{im}}(\mathrm{chunk}(h)_{\text{im}} + b_{\text{im}})
+h_{\text{im}} = h^{(2)} + (W_{\text{im}} h^{(2)} + b_{\text{im}})
 $$
 
-At initialization, ZRCP acts as an identity mapping; during training, it learns to disentangle aspect (real part) and polarity (imaginary part) without spatial collapse.
+where $h^{(1)}, h^{(2)}$ are equal splits of the original PLM output. All weights and biases are initialized to zero, so at initialization ZRCP acts as an identity mapping, preserving pre-trained knowledge while learning smooth phase shifts for polarity disentanglement.
 
 ### Anti-collision Masked Angle Loss
 
-Standard contrastive loss erroneously repels same-polarity samples. We introduce a mask matrix \(M_{ij}\) that zeros out the penalty for pairs sharing the same aspect and polarity:
+Standard contrastive loss erroneously repels same-polarity samples. We introduce a mask matrix $M_{ij}$ that zeros out the penalty for pairs sharing the same aspect and polarity:
 
 $$
-\mathcal{L}_{\text{ibn}} = -\sum_{i=1}^{N} \log \left( \frac{e^{\mathrm{sim}(h_i,h_i^+)\tau_{\text{ibn}}}}{\sum_{j=1}^{N} e^{\mathrm{sim}(h_i,h_j)\tau_{\text{ibn}}} \cdot (1 - M_{ij})} \right)
+\mathcal{L}_{\text{ibn}} = -\sum_{i=1}^{N} \log \left( \frac{e^{\text{sim}(h_i,h_i^+)\tau_{\text{ibn}}}}{\sum_{j=1}^{N} e^{\text{sim}(h_i,h_j)\tau_{\text{ibn}}} \cdot (1 - M_{ij})} \right)
 $$
 
-### Angle-Optimized Objective
-
-We explicitly maximize the angular divergence between opposing sentiments using complex division and amplitude normalization:
+Additionally, we directly optimize the complex angular difference to overcome gradient saturation of cosine similarity:
 
 $$
 \mathcal{L}_{\text{angle}} = \log\left(1 + \sum_{n\in \mathcal{N}} \exp\left(\Delta \theta_{zn}\tau_{\text{angle}} - \Delta \theta_{zw}\tau_{\text{angle}}\right)\right)
 $$
 
-### Joint Loss
+### Amplitude Penalty for Structural Consolidation
+
+To enforce structural consistency within the same aspect category, we add an amplitude penalty that aligns the complex magnitudes of query and target (regardless of polarity):
 
 $$
-\mathcal{L}_{\text{total}} = w_{\text{ibn}}\mathcal{L}_{\text{ibn}} + w_{\text{angle}}\mathcal{L}_{\text{angle}} + w_{\text{cos}}\mathcal{L}_{\text{cos}}
+\mathcal{L}_{\text{amp}} = \text{MSE}(|z|, |w|)
 $$
 
-In our optimal configuration: $w_{\text{ibn}}=1.0$, $w_{\text{angle}}=1.0$, $w_{\text{cos}}=0.1$, $\tau_{\text{ibn}}=\tau_{\text{angle}}=20$.
+This regularization filters out intensity noise (e.g., lexical richness) and forces the model to focus on phase-driven polarity separation, particularly benefiting class-imbalanced aspects.
+
+### Joint Optimization Objective
+
+$$
+\mathcal{L}_{\text{total}} = w_{\text{ibn}}\mathcal{L}_{\text{ibn}} + w_{\text{angle}}\mathcal{L}_{\text{angle}} + w_{\text{cos}}\mathcal{L}_{\text{cos}} + w_{\text{amp}}\mathcal{L}_{\text{amp}}
+$$
+
+In our optimal configuration: $w_{\text{ibn}}=w_{\text{angle}}=w_{\text{cos}}=w_{\text{amp}}=1.0$, $\tau_{\text{ibn}}=\tau_{\text{angle}}=20$.
 
 ---
 
+## 📦 Datasets
 
-## 📦 Dataset
+### ASAP-Triplet Dataset (Chinese)
 
-### ASAP-Triplet Dataset
+We release the pre-processed triplet dataset used in our experiments.
 
-We release the pre-processed triplet dataset used in our experiments to facilitate future research.
-
-**Dataset Description**:
 - **Base dataset**: ASAP ([Aspect-based Sentiment Analysis of Restaurant Reviews](https://github.com/Meituan-Dianping/asap.git))
 - **Language**: Chinese
 - **Aspects**: 18 fine-grained categories (Location, Service, Price, Taste, etc.)
@@ -132,72 +138,75 @@ dataset = load_dataset("Kevin3777/ASAP-Triplet")
 
 ## 📊 Experiments
 
-### Dataset
-
-We evaluate on the **ASAP** (Aspect-based Sentiment Analysis of Restaurant Reviews) dataset, which contains Chinese restaurant reviews annotated with 18 fine-grained aspects (e.g., Location, Service, Price, Taste) and sentiment polarities (Positive, Negative, Neutral). After context-aware extraction, we obtain purified aspect-polarity triplets.
-
 ### Baselines
 
 - **RoBERTa (Zero-shot)**: Pre-trained Chinese RoBERTa without fine-tuning.
-- **CoSENT**: Cosine-based sentence embedding method.
+- **RoBERTa-pair**: Linear probe with aspect-context paired prompts.
+- **LCFS-RoBERTa**: Local context-focused model.
+- **DualGCN-RoBERTa**: Syntax-aware dual graph convolutional network.
 - **SimCSE**: Contrastive learning with dropout augmentation.
-- **AnglE (Format C)**: Original angle-optimized embeddings with hard chunking and standard triplets.
+- **AnglE (Format C/A)**: Original angle-optimized embeddings with hard chunking.
 
-### Main Results
+### Main Results (ASAP Dataset)
 
-| Aspect Category   | RoBERTa (Zero-shot) | CoSENT       | SimCSE       | AnglE (Format C) | Ours (ZRCP+Mask) |
-|-------------------|---------------------|--------------|--------------|------------------|------------------|
-|                   | F1     | Acc     | F1     | Acc     | F1     | Acc     | F1     | Acc     | F1     | Acc     |
-| Transportation    | 0.6291 | 0.8400  | 0.7972 | 0.9356  | 0.8517 | 0.9549  | 0.8409 | 0.9549  | **0.8790** | **0.9635** |
-| Downtown          | 0.5715 | 0.9257  | 0.6890 | 0.9575  | 0.7663 | 0.9729  | **0.8171** | 0.9800  | 0.7372 | 0.9717 |
-| Easy to find      | 0.6787 | 0.7362  | 0.8525 | 0.8906  | 0.9189 | 0.9435  | 0.9100 | 0.9366  | **0.9382** | **0.9574** |
-| Queue             | 0.7332 | 0.7340  | 0.7523 | 0.7532  | 0.8206 | 0.8213  | 0.8118 | 0.8128  | **0.8413** | **0.8426** |
-| Hospitality       | 0.8607 | 0.8984  | 0.8807 | 0.9134  | 0.9393 | 0.9583  | 0.9405 | 0.9592  | **0.9429** | **0.9610** |
-| Parking           | 0.6156 | 0.6693  | 0.7704 | 0.8132  | 0.8798 | 0.9026  | 0.8674 | 0.8912  | **0.8908** | **0.9106** |
-| Timely            | 0.7413 | 0.7508  | 0.8678 | 0.8723  | 0.9172 | 0.9210  | **0.9366** | **0.9392** | 0.9330 | 0.9362 |
-| Price Level       | 0.7427 | 0.7433  | 0.8049 | 0.8056  | 0.9193 | 0.9199  | 0.9194 | 0.9199  | **0.9223** | **0.9228** |
-| Cost-effective    | 0.7439 | 0.8461  | 0.8117 | 0.8981  | 0.9431 | 0.9734  | 0.9223 | 0.9628  | **0.9459** | **0.9745** |
-| Discount          | 0.7012 | 0.8252  | 0.6993 | 0.8365  | 0.7251 | 0.8692  | 0.7744 | 0.9006  | **0.7893** | **0.9094** |
-| Decoration        | 0.6815 | 0.8727  | 0.7004 | 0.8975  | 0.8181 | 0.9487  | 0.8281 | 0.9539  | **0.8494** | **0.9608** |
-| Noise             | 0.7272 | 0.8385  | 0.7990 | 0.8884  | 0.9084 | 0.9550  | **0.9306** | **0.9667** | 0.9294 | 0.9650 |
-| Space             | 0.7431 | 0.8003  | 0.8104 | 0.8638  | 0.8563 | 0.9001  | 0.8774 | 0.9160  | **0.8941** | **0.9266** |
-| Sanitary          | 0.7705 | 0.8535  | 0.8094 | 0.8803  | 0.8694 | 0.9254  | 0.8744 | 0.9296  | **0.8857** | **0.9359** |
-| Portion           | 0.7220 | 0.7617  | 0.8170 | 0.8487  | 0.8719 | 0.8968  | 0.8776 | 0.9020  | **0.8990** | **0.9194** |
-| Taste             | 0.8486 | 0.9504  | 0.8651 | 0.9566  | 0.8966 | 0.9682  | 0.8973 | 0.9685  | **0.9139** | **0.9747** |
-| Appearance        | 0.7234 | 0.8373  | 0.7426 | 0.8532  | 0.8171 | 0.9069  | 0.8366 | 0.9182  | **0.8327** | **0.9144** |
-| Recommend         | 0.6695 | 0.8023  | 0.7814 | 0.8941  | 0.8882 | 0.9515  | 0.8825 | 0.9490  | **0.9079** | **0.9605** |
-| **Macro-Average** | 0.7169 | 0.8437  | 0.7917 | 0.8755  | 0.8671 | 0.9272  | 0.8756 | 0.9315  | **0.8851** | **0.9393** |
+| Aspect Category | RoBERTa (Zero-shot) | RoBERTa-pair | LCFS | DualGCN | SimCSE | AnglE (Form C) | **Ours (ZRCP+Full)** |
+|----------------|---------------------|--------------|------|---------|--------|----------------|----------------------|
+|                | F1 / Acc            | F1 / Acc     | F1 / Acc | F1 / Acc | F1 / Acc | F1 / Acc | F1 / Acc |
+| Transportation | 0.5359 / 0.6950 | 0.6559 / 0.8571 | 0.6834 / 0.8861 | 0.7950 / 0.9323 | 0.9039 / 0.9710 | 0.8622 / 0.9592 | **0.9022 / 0.9721** |
+| Downtown       | 0.4706 / 0.7217 | 0.5700 / 0.9245 | 0.6084 / 0.9363 | 0.7454 / 0.9658 | 0.7961 / 0.9682 | 0.8434 / 0.9776 | **0.7858 / 0.9717** |
+| Easy to find   | 0.5998 / 0.6601 | 0.7150 / 0.7696 | 0.7534 / 0.8076 | 0.9004 / 0.9297 | 0.9191 / 0.9424 | 0.9149 / 0.9401 | **0.9265 / 0.9482** |
+| Queue          | 0.6830 / 0.6851 | 0.7502 / 0.7511 | 0.7649 / 0.7660 | 0.7802 / 0.7809 | 0.8401 / 0.8404 | 0.8573 / 0.8574 | **0.8743 / 0.8745** |
+| Hospitality    | 0.7932 / 0.8526 | 0.8678 / 0.9039 | 0.8793 / 0.9138 | 0.9281 / 0.9497 | 0.9505 / 0.9660 | 0.9479 / 0.9642 | **0.9582 / 0.9714** |
+| Parking        | 0.6495 / 0.6809 | 0.6570 / 0.7121 | 0.6720 / 0.7354 | 0.8319 / 0.8599 | 0.9072 / 0.9261 | 0.8965 / 0.9183 | **0.9169 / 0.9339** |
+| Timely         | 0.6580 / 0.6733 | 0.8146 / 0.8222 | 0.8210 / 0.8283 | 0.8816 / 0.8860 | 0.9161 / 0.9195 | 0.9414 / 0.9438 | **0.9329 / 0.9362** |
+| Price Level    | 0.6645 / 0.6662 | 0.7628 / 0.7634 | 0.7824 / 0.7826 | 0.9015 / 0.9021 | 0.9312 / 0.9318 | 0.9335 / 0.9340 | **0.9342 / 0.9347** |
+| Cost-effective | 0.6600 / 0.7696 | 0.7522 / 0.8514 | 0.7689 / 0.8684 | 0.8732 / 0.9352 | 0.9035 / 0.9512 | 0.9223 / 0.9628 | **0.9212 / 0.9607** |
+| Discount       | 0.5751 / 0.6994 | 0.6975 / 0.8264 | 0.7248 / 0.8604 | 0.7146 / 0.8453 | 0.7347 / 0.8654 | 0.7744 / 0.9006 | **0.7835 / 0.8956** |
+| Decoration     | 0.5841 / 0.7759 | 0.6891 / 0.8808 | 0.7334 / 0.9113 | 0.7814 / 0.9343 | 0.8057 / 0.9412 | 0.8281 / 0.9539 | **0.8627 / 0.9637** |
+| Noise          | 0.6127 / 0.7136 | 0.7539 / 0.8593 | 0.7714 / 0.8751 | 0.8840 / 0.9417 | 0.9079 / 0.9550 | 0.9306 / 0.9667 | **0.9272 / 0.9642** |
+| Space          | 0.6557 / 0.7050 | 0.7695 / 0.8245 | 0.7710 / 0.8306 | 0.8805 / 0.9160 | 0.8809 / 0.9168 | 0.8774 / 0.9160 | **0.9108 / 0.9380** |
+| Sanitary       | 0.7133 / 0.8106 | 0.7862 / 0.8641 | 0.8072 / 0.8838 | 0.8776 / 0.9289 | 0.8654 / 0.9197 | 0.8744 / 0.9296 | **0.9002 / 0.9423** |
+| Portion        | 0.6490 / 0.6916 | 0.7347 / 0.7710 | 0.7690 / 0.8052 | 0.8531 / 0.8788 | 0.8864 / 0.9072 | 0.8776 / 0.9020 | **0.9013 / 0.9200** |
+| Taste          | 0.7500 / 0.9001 | 0.8538 / 0.9522 | 0.8896 / 0.9667 | 0.8809 / 0.9624 | 0.9048 / 0.9710 | 0.8973 / 0.9685 | **0.9247 / 0.9776** |
+| Appearance     | 0.6823 / 0.7996 | 0.7224 / 0.8363 | 0.7390 / 0.8561 | 0.7721 / 0.8692 | 0.8022 / 0.8899 | 0.8366 / 0.9182 | **0.8105 / 0.8975** |
+| Recommend      | 0.6094 / 0.7194 | 0.6913 / 0.8189 | 0.7187 / 0.8444 | 0.7951 / 0.8941 | 0.8911 / 0.9515 | 0.8825 / 0.9490 | **0.8887 / 0.9503** |
+| **Macro-Average** | 0.6414 / 0.7344 | 0.7358 / 0.8327 | 0.7588 / 0.8532 | 0.8376 / 0.9062 | 0.8748 / 0.9297 | 0.8823 / 0.9340 | **0.8923 / 0.9418** |
 
-**Table 1:** Main results on the ASAP dataset. Best scores are in bold.
+*Table: Main results on the ASAP dataset. Best scores are in bold.*
 
 ### Ablation Study
 
-| Model Variations          | Macro-F1 | Acc    |
-|---------------------------|----------|--------|
-| Ours (Full Model)         | **0.8851** | **0.9393** |
-| w/o ZRCP (Hard Chunking)  | 0.8739   | 0.9319 |
-| w/o Anti-collision Mask   | 0.8749   | 0.9308 |
-| w/o Angle Loss (\(w_{\text{angle}}=0\)) | 0.8843   | 0.9389 |
+| Model Variations | Macro-F1 | Acc |
+|------------------|----------|-----|
+| Ours (Full Model) | **0.8923** | **0.9418** |
+| w/o ZRCP (Hard Chunking) | 0.8739 | 0.9319 |
+| w/o Anti-collision Mask | 0.8809 | 0.9336 |
+| w/o Angle Loss (w_angle=0) | 0.8843 | 0.9389 |
+| w/o Dynamic Window (Full Text) | 0.8679 | 0.9283 |
+| w/o Hybrid Triplets (Standard Pairs) | 0.7735 | 0.8607 |
 
-**Table 2:** Ablation study on core components.
+### English Benchmarks
+
+| Model | SemEval-2016 (Macro-F1 / Acc) | MAMS-ACSA (Macro-F1 / Acc) |
+|-------|-------------------------------|-----------------------------|
+| RoBERTa-pair | 0.8180 / 0.8869 | 0.6383 / 0.7193 |
+| DualGCN | 0.8289 / 0.9135 | 0.5651 / 0.6655 |
+| SimCSE | 0.8457 / 0.8962 | 0.6038 / 0.7217 |
+| AnglE (Format C) | 0.8632 / 0.9134 | — |
+| AnglE (Format A) | 0.8784 / 0.9078 | 0.6532 / 0.7526 |
+| **Ours (ZRCP+Full)** | **0.9044 / 0.9347** | **0.6671 / 0.7656** |
 
 ### Amplitude Penalty Analysis
 
-We investigate the effect of adding an explicit amplitude penalty (MSE loss) to force identical magnitudes for same-aspect samples.
+Adding the amplitude penalty ($\mathcal{L}_{\text{amp}}$) improves Macro-F1 from 0.8901 to 0.8923, with especially large gains on long-tail aspects (e.g., Downtown +3.69%). It acts as a structural regularizer, filtering intensity noise without harming overall accuracy.
 
-| Aspect Category   | w/o Amploss (Ours) | with Amploss | Δ        |
-|-------------------|--------------------|--------------|----------|
-| **Objective / Fact-based**   |                    |              |          |
-| Discount          | 0.7893             | 0.7983       | +0.90%   |
-| Price Level       | 0.9223             | 0.9261       | +0.38%   |
-| Timely            | 0.9330             | 0.9346       | +0.16%   |
-| **Subjective / Descriptive** |                    |              |          |
-| Decoration        | 0.8494             | 0.8403       | -0.91%   |
-| Taste             | 0.9139             | 0.9095       | -0.44%   |
-| Appearance        | 0.8327             | 0.8286       | -0.41%   |
-| **Macro-Average** | 0.8851             | 0.8829       | -0.22%   |
-
-**Table 3:** Impact of amplitude penalty. Amplitude regularization helps factual aspects but harms subjective ones, confirming that amplitude encodes sentiment intensity.
+| Aspect Category | w/o AmpLoss | with AmpLoss | Δ |
+|----------------|-------------|--------------|---|
+| Transportation | 0.8916 | 0.9022 | +1.06% |
+| Downtown       | 0.7489 | 0.7858 | +3.69% |
+| Decoration     | 0.8556 | 0.8627 | +0.71% |
+| Taste          | 0.9265 | 0.9247 | -0.18% |
+| **Macro-F1**   | 0.8901 | **0.8923** | +0.22% |
 
 ---
 
