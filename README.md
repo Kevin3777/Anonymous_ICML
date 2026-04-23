@@ -1,15 +1,10 @@
 # Beyond Cosine Similarity: Zero-Initialized Residual Complex Projection for Aspect-Based Sentiment Analysis
 
-[![arXiv](https://img.shields.io/badge/arXiv-2603.28205-b31b1b.svg)](https://arxiv.org/abs/2603.28205)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![Hugging Face Model](https://img.shields.io/badge/🤗%20Hugging%20Face-Model-blue)](https://huggingface.co/Kevin3777/zero-init-residual-amp)
 
-Official PyTorch implementation of the paper:  
-**"BEYOND COSINE SIMILARITY: ZERO-INITIALIZED RESIDUAL COMPLEX PROJECTION FOR ASPECT-BASED SENTIMENT ANALYSIS"**  
-*March 17, 2026*
+🔒 Anonymized Repository for Double-Blind Review
+This repository is anonymized for the peer review process. The complete code, data, and pre-trained models will be made publicly available upon paper acceptance. The current version includes all core implementations and evaluation scripts necessary for reproducing the main results.
 
-This repository contains the code, data, and pre-trained models for our novel framework that disentangles aspect semantics and sentiment polarities using complex-valued representations. Our method achieves state-of-the-art performance on fine-grained ABSA tasks by overcoming false-negative collisions and leveraging phase-driven angle optimization, further consolidated by an **amplitude penalty** that filters subjective intensity noise.
+This repository contains the code, data, and pre-trained models for our novel framework that disentangles aspect semantics and sentiment polarities using complex-valued representations. Our method achieves state-of-the-art performance on fine-grained ABSA tasks by overcoming false-negative collisions and leveraging phase-driven angle optimization. 
 
 ---
 
@@ -51,7 +46,6 @@ We propose a novel framework that:
 
 Our method achieves a **Macro-F1 of 0.8923** and **Accuracy of 0.9418** on the ASAP dataset, significantly outperforming strong baselines. It also achieves state-of-the-art results on English benchmarks SemEval-2016 (Macro-F1 0.9044) and MAMS-ACSA (Macro-F1 0.6671).
 
-The pre-trained model is available on Hugging Face: [Kevin3777/zero-init-residual-complex-absa](https://huggingface.co/Kevin3777/zero-init-residual-amp)
 
 ---
 
@@ -126,15 +120,6 @@ We release the pre-processed triplet dataset used in our experiments.
 - **Polarities**: Positive, Negative, Neutral
 - **Format**: JSON lines with triplet structure for contrastive learning
 
-**Access**:
-```bash
-# Download from Hugging Face
-git clone https://huggingface.co/datasets/Kevin3777/ASAP-Triplet
-
-# Or load directly with datasets library
-from datasets import load_dataset
-dataset = load_dataset("Kevin3777/ASAP-Triplet")
-```
 
 ## 📊 Experiments
 
@@ -217,7 +202,6 @@ Adding the amplitude penalty ($\mathcal{L}_{\text{amp}}$) improves Macro-F1 from
 Clone the repository and install dependencies:
 
 ```bash
-git clone https://github.com/Kevin3777/AG-ABSA.git
 cd AG-ABSA
 pip install -r requirements.txt
 ```
@@ -228,33 +212,17 @@ We provide the pre-processed triplet dataset on Hugging Face Datasets, which onl
 
 ```bash
 # Option 1: Clone the dataset repository
-git clone https://huggingface.co/datasets/Kevin3777/ASAP-Triplet
 cp asap-triplet/*.json ./data/
 ```
 
-You could have the original datasets including the train, dev and test data from https://github.com/Meituan-Dianping/asap.git
 
-```bash
-# Option 1: Clone the dataset repository
-git clone https://huggingface.co/datasets/Kevin3777/ASAP-Triplet
-cp asap-triplet/*.json ./data/
-```
-
-### Direct Usage
-
-The pre-trained model is available on Hugging Face: [Kevin3777/zero-init-residual-complex-absa](https://huggingface.co/Kevin3777/zero-init-residual-complex-absa) To use the pre-trained model with codes:
-
-```bash
-from transformers import AutoModel
-model = AutoModel.from_pretrained("yourusername/zrcp-absa")
-```
 
 ### Training
 
 To train the model with default settings:
 
 ```bash
-python train_learnable\v3_all1\train_encoder.py
+python train_amplitude\train_v8\train_encoder.py
 ```
 
 The training config is shown as an example:
@@ -263,7 +231,7 @@ The training config is shown as an example:
 {
   "data": {
     "input_jsonl_file": "D:/WorkSpace/AnglE_yj/data_preparation/Aspect-Polarity_Pair/output/v2/asap_angle_contextual_ap_data_hybrid.jsonl",
-    "output_dir": "checkpoints_learnable/v3_all1"
+    "output_dir": "checkpoints_amplitude/v8"
   },
   "model": {
     "name": "hfl/chinese-roberta-wwm-ext",
@@ -284,6 +252,7 @@ The training config is shown as an example:
     "cosine_w": 1.0,       
     "ibn_w": 1.0,
     "angle_w": 1.0,
+    "amp_w":1.0,
     "cosine_tau": 20,
     "ibn_tau": 20,
     "angle_tau": 1          
@@ -297,28 +266,11 @@ The training config is shown as an example:
 Evaluate a trained model on the test set:
 
 ```bash
-python eval_new\learnable\v3_all1\eval_learnable.py
+python train_amplitude\eval\eval_v8\eval_ours_standard.py
 ```
 
----
 
-## 📝 Citation
 
-If you find this work useful for your research, please cite our paper:
-
-```bibtex
-@misc{wang2026cosinesimilarityzeroinitializedresidual,
-      title={Beyond Cosine Similarity: Zero-Initialized Residual Complex Projection for Aspect-Based Sentiment Analysis}, 
-      author={Yijin Wang and Fandi Sun},
-      year={2026},
-      eprint={2603.28205},
-      archivePrefix={arXiv},
-      primaryClass={cs.CL},
-      url={https://arxiv.org/abs/2603.28205}, 
-}
-```
-
----
 
 ## 📄 License
 
@@ -332,4 +284,3 @@ We thank the authors of the ASAP dataset and the open-source community for their
 
 ---
 
-**Note:** The code and data will be released upon paper acceptance. For questions, please open an issue or contact [wyj3777@outlook.com](mailto:wyj3777@outlook.com).
