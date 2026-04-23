@@ -3,7 +3,7 @@
 [![arXiv](https://img.shields.io/badge/arXiv-2603.28205-b31b1b.svg)](https://arxiv.org/abs/2603.28205)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![Hugging Face Model](https://img.shields.io/badge/🤗%20Hugging%20Face-Model-blue)](https://huggingface.co/Kevin3777/zero-init-residual-complex-absa)
+[![Hugging Face Model](https://img.shields.io/badge/🤗%20Hugging%20Face-Model-blue)](https://huggingface.co/Kevin3777/zero-init-residual-amp)
 
 Official PyTorch implementation of the paper:  
 **"BEYOND COSINE SIMILARITY: ZERO-INITIALIZED RESIDUAL COMPLEX PROJECTION FOR ASPECT-BASED SENTIMENT ANALYSIS"**  
@@ -51,7 +51,7 @@ We propose a novel framework that:
 
 Our method achieves a **Macro-F1 of 0.8923** and **Accuracy of 0.9418** on the ASAP dataset, significantly outperforming strong baselines. It also achieves state-of-the-art results on English benchmarks SemEval-2016 (Macro-F1 0.9044) and MAMS-ACSA (Macro-F1 0.6671).
 
-The pre-trained model is available on Hugging Face: [Kevin3777/zero-init-residual-complex-absa](https://huggingface.co/Kevin3777/zero-init-residual-complex-absa)
+The pre-trained model is available on Hugging Face: [Kevin3777/zero-init-residual-complex-absa](https://huggingface.co/Kevin3777/zero-init-residual-amp)
 
 ---
 
