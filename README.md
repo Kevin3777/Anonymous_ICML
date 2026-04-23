@@ -230,7 +230,7 @@ The training config is shown as an example:
 ```bash
 {
   "data": {
-    "input_jsonl_file": "D:/WorkSpace/AnglE_yj/data_preparation/Aspect-Polarity_Pair/output/v2/asap_angle_contextual_ap_data_hybrid.jsonl",
+    "input_jsonl_file": "data_preparation/Aspect-Polarity_Pair/output/v2/asap_angle_contextual_ap_data_hybrid.jsonl",
     "output_dir": "checkpoints_amplitude/v8"
   },
   "model": {
