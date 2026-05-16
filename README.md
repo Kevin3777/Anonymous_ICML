@@ -1,4 +1,4 @@
-# Beyond Cosine Similarity: Zero-Initialized Residual Complex Projection for Aspect-Based Sentiment Analysis
+# Resource-Adaptive Sentiment Inference via Complex-Phase Disentanglement
 
 
 🔒 Anonymized Repository for Double-Blind Review
